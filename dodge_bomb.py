@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import pygame
 import pygame as pg
 
 
@@ -11,9 +12,23 @@ DELTA = {  #移動量辞書
          pg.K_LEFT:(-5, 0), 
          pg.K_RIGHT:(+5, 0),
         }
+angle = 0
+direction = {
+             pg.K_LEFT:0,
+             pg.K_LEFT and pg.K_DOWN:45,
+             pg.K_UP:90,
+             pg.K_LEFT and pg.K_UP:-45,
+             pg.K_DOWN:-90,
+             pg.K_RIGHT:0,
+             pg.K_RIGHT and pg.K_UP :45,
+             pg.K_RIGHT and pg.K_DOWN:-45,
+             }
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
+
     """
     引数：こうかとんRect,　または,ばくだんRect
     戻り値：真理値タプル(横方向, 縦方向)
@@ -30,7 +45,7 @@ def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load("fig/pg_bg.jpg")    
+    bg_img = pg.image.load("fig/pg_bg.jpg")
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 2.0)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 900, 400
@@ -47,7 +62,9 @@ def main():
             if event.type == pg.QUIT: 
                 return
         if kk_rct.colliderect(bb_rct):
-            return  #ゲームオーバー
+            rect = pg.Surface((WIDTH, HEIGHT))  
+            pg.draw.rect(0, 0, WIDTH/2, HEIGHT/2)  #ゲームオーバー画面のブラックアウト
+            #return  #ゲームオーバー
         screen.blit(bg_img, [0, 0]) 
 
         key_lst = pg.key.get_pressed()
@@ -59,6 +76,22 @@ def main():
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+
+        for rot_k, rot_v in direction.items():
+             #向いている方向の変更
+             if key_lst[rot_k] and key_lst[rot_k]:
+                 kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), rot_v, 2.0)
+             #以下こうかとんの反転
+             fleft = True
+             kk_img = pg.transform.flip(kk_img, True, False)
+             if key_lst[pg.K_LEFT]:
+                if fleft == False:
+                     kk_img = pg.transform.flip(kk_img, True, False)
+                     fleft = True
+             if key_lst[pg.K_RIGHT] or key_lst[pg.K_UP] or key_lst[pg.K_DOWN]:
+                if fleft == True:
+                     kk_img = pg.transform.flip(kk_img, True, False)
+                     fleft = False
         screen.blit(kk_img, kk_rct)
 
         bb_rct.move_ip(vx, vy)
